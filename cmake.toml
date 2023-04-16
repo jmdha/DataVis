@@ -1,0 +1,56 @@
+[cmake]
+version = "3.15"
+cmkr-include = "cmake/cmkr.cmake"
+
+[project]
+name = "DataVis"
+
+# See https://github.com/microsoft/vcpkg#getting-started on how to use vcpkg
+# Chose a version from https://github.com/microsoft/vcpkg/releases
+# During CMake configuration you will be told how to find and link to the packages
+[vcpkg]
+version = "2021.05.12"
+packages = ["glfw3", "glew"]
+
+# vcpkg will download the packages, but you still need to find them to use them
+[find-package]
+glfw3 = {}
+GLEW = {}
+
+[target.imgui]
+type = "static"
+sources = [
+    "third_party/imgui/*.cpp",
+    "third_party/imgui/*.h",
+    "third_party/imgui/backends/imgui_impl_glfw.cpp",
+    "third_party/imgui/backends/imgui_impl_glfw.h",
+    "third_party/imgui/backends/imgui_impl_opengl3.cpp",
+    "third_party/imgui/backends/imgui_impl_opengl3.h",
+]
+include-directories = ["third_party/imgui"]
+link-libraries = ["glfw", "GLEW::GLEW"]
+compile-features = ["cxx_std_20"]
+
+[target.implot]
+type = "static"
+sources = [
+    "third_party/implot/*.cpp"
+]
+headers = [
+    "third_party/implot/*.h"
+]
+include-directories = ["third_party/imgui"]
+
+[target.DataVis]
+type = "executable"
+sources = ["src/main.cpp",
+           "src/IO/GUI/*.cpp",
+    "third_party/ImGuiFileDialog/ImGuiFileDialog.cpp"]
+headers = ["src/*.h",
+           "src/IO/GUI/*.h", "src/IO/GUI/GUIElements/*.h",
+           "src/misc/*.h", "src/utilities/*.h", "src/types/*.h", "src/core/feature_finding/*.h", "src/core/attributes/*.h",
+           "third_party/ImGuiFileDialog/ImGuiFileDialog.h", "third_party/ImGuiFileDialog/ImGuiFileDialogConfig.h"]
+link-libraries = ["imgui", "implot"]
+include-directories = ["src", "third_party"]
+compile-features = ["cxx_std_20"]
+
