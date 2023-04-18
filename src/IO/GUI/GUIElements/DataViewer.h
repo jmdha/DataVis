@@ -8,7 +8,9 @@
 
 class DataViewer : public GUIElement {
     void Update() final {
-        ImGui::Begin("Raw Data");
+        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(ImVec2(700, 364), ImGuiCond_Appearing);
+        ImGui::Begin("Raw Data", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
 
         if (ImGui::Button("Select"))
             ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Select Files", ".*", ".", 0);
