@@ -2,6 +2,7 @@
 #define DATAVIS_DATAMANAGER_H
 
 #include <utility>
+#include <mutex>
 
 #include "Constants.h"
 #include "utilities/SeriesUtils.h"
@@ -19,7 +20,7 @@ public:
         features.clear();
         trainFeatureSeries.clear();
         testFeatureSeries.clear();
-        acc = -1;
+        acc.clear();
         classAcc.clear();
     }
     static void UpdateRawData(const std::vector<LabelledSeries> &train, const std::vector<LabelledSeries> &test) {
@@ -27,6 +28,8 @@ public:
         rawTrainData = train;
         testData = test;
         rawTestData = test;
+        acc.clear();
+        classAcc.clear();
 
         SeriesUtils::MinMaxNormalize(trainData);
         SeriesUtils::MinMaxNormalize(testData);
@@ -55,31 +58,47 @@ public:
         features.clear();
         trainFeatureSeries.clear();
         testFeatureSeries.clear();
-        acc = -1;
+        acc.clear();
         classAcc.clear();
         isGenerating = true;
     }
     static void EndFeatureGeneration() {
         isGenerating = false;
-        trainFeatureSeries = FeatureUtils::GenerateFeatureSeries(trainData, features);
-        testFeatureSeries = FeatureUtils::GenerateFeatureSeries(testData, features);
     }
     static bool IsGeneratingFeatures() { return isGenerating; }
     static bool HasFeatures() { return !features.empty(); }
     static int FeatureCount() { return features.size(); }
     static Feature GetFeature(int index) { return features[index]; }
     static std::vector<Feature> GetFeatures() { return features; }
-    static void AddFeature(const Feature& feature) { features.push_back(feature); }
-    static void ClearFeatures() { features.clear(); }
+    static void AddFeature(const Feature& feature) {
+        features.push_back(feature);
+        static std::mutex mutex;
+        std::unique_lock lock(mutex);
+        testFeatureSeries = FeatureUtils::GenerateFeatureSeries(testData, features);
+        trainFeatureSeries = FeatureUtils::GenerateFeatureSeries(trainData, features);
+    }
+    static void ClearFeatures() {
+        features.clear();
+        acc.clear();
+        classAcc.clear();
+    }
     static std::unordered_map<int, std::vector<Series>> GetTrainFeatureSeries() { return trainFeatureSeries; }
     static std::unordered_map<int, std::vector<Series>> GetTestFeatureSeries() { return testFeatureSeries; }
-    static bool HasAccuracy() { return !classAcc.empty(); };
-    static double GetAccuracy() { return acc; };
-    static std::vector<double> GetClassAccuracy() { return classAcc; };
-    static void SetAccuracy(double accuracy) { acc = accuracy; }
-    static void SetClassAccuracy(std::vector<double> accuracy) { classAcc = accuracy; }
+    static bool HasAccuracy() { return !acc.empty(); };
+    static uint AccuracyCount() { return acc.size(); };
+    static std::vector<double> GetAccuracy() { return acc; };
+    static std::vector<std::vector<double>> GetClassAccuracy() { return classAcc; };
+    static void AddAccuracy(double accuracy) { acc.push_back(accuracy); }
+    static void AddClassAccuracy(const std::vector<double>& accuracy) {
+        for (uint i = 0; i < accuracy.size(); i++) {
+            if (classAcc.size() <= i)
+                classAcc.push_back({ accuracy.at(i) });
+            else
+                classAcc.at(i).push_back(accuracy.at(i));
+        }
+    }
     static void ResetAccuracy() {
-        acc = -1;
+        acc.clear();
         classAcc.clear();
     }
 private:
@@ -92,8 +111,8 @@ private:
     static inline std::unordered_map<int, std::vector<Series>> trainFeatureSeries;
     static inline std::unordered_map<int, std::vector<Series>> testFeatureSeries;
     static inline bool isGenerating = false;
-    static inline double acc;
-    static inline std::vector<double> classAcc;
+    static inline std::vector<double> acc;
+    static inline std::vector<std::vector<double>> classAcc;
 };
 
 #endif //DATAVIS_DATAMANAGER_H

@@ -7,6 +7,9 @@
 #include "misc/DataManager.h"
 #include "core/feature_finding/FeatureFinding.h"
 #include "core/attributes/MinDist.h"
+#include "core/attributes/OccPos.h"
+#include "core/attributes/MaxDist.h"
+#include "core/attributes/Frequency.h"
 
 class FeatureViewer : public GUIElement {
     void Update() final {
@@ -22,10 +25,10 @@ class FeatureViewer : public GUIElement {
 
         bool hasChanged = false;
         static int minWindowSize = 2;
-        static int maxWindowSize = 32;
+        static int maxWindowSize = 128;
         static int minSampleSize = 0;
         static int maxSampleSize = 5;
-        static int featureCount = 48;
+        static int featureCount = 256;
         ImGui::PushItemWidth(96);
         hasChanged |= ImGui::InputInt("Min Window Size", &minWindowSize);
         ImGui::SameLine();
@@ -48,7 +51,10 @@ class FeatureViewer : public GUIElement {
                 resultThread.value().detach();
             resultThread = std::thread([&] { FeatureFinding::GenerateFeaturesFromSamples(DataManager::GetNormTrainDataMap(),
                                                                           minWindowSize, maxWindowSize, minSampleSize, maxSampleSize, featureCount,
-                                                                          { std::make_unique<MinDist>(MinDist()) });
+                                                                          {
+                std::make_unique<MinDist>(MinDist()),
+                std::make_unique<MaxDist>(MaxDist())
+                        });
             } );
             /*FeatureFinding::GenerateFeaturesFromSamples(DataManager::GetNormTrainDataMap(),
                                                         minWindowSize, maxWindowSize, minSampleSize, maxSampleSize, featureCount,

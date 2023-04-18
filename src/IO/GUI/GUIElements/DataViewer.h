@@ -46,7 +46,7 @@ class DataViewer : public GUIElement {
         }
 
         if (shotBased && DataManager::HasData()) {
-            static int split = 5;
+            static int split = 6;
             static int priorSplit = split;
             static int maxCount = 10;
             ImGui::SameLine();

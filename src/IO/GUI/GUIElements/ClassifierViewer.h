@@ -17,7 +17,7 @@ class ClassifierViewer : public GUIElement {
             DataManager::ResetAccuracy();
 
 
-        if (!DataManager::HasAccuracy()) {
+        if (DataManager::AccuracyCount() < DataManager::FeatureCount()) {
             const auto trainFeatures = DataManager::GetTrainFeatureSeries();
             const auto testFeatures = DataManager::GetTestFeatureSeries();
             std::map<int, int> correct;
@@ -37,16 +37,19 @@ class ClassifierViewer : public GUIElement {
             std::vector<double> classAcc;
             for (const auto &c : correct)
                 classAcc.push_back(((double) c.second / (double) testFeatures.at(c.first).size()) * 100);
-            DataManager::SetAccuracy((double) totalCorrect / (double) (totalCorrect + totalIncorrect));
-            DataManager::SetClassAccuracy(classAcc);
+            DataManager::AddAccuracy(((double) totalCorrect / (double) (totalCorrect + totalIncorrect)) * 100);
+            DataManager::AddClassAccuracy(classAcc);
         }
 
-        ImGui::Text("Total Accuracy: %f", DataManager::GetAccuracy());
+        ImGui::Text("Total Accuracy: %f", DataManager::GetAccuracy().back());
 
         ImPlot::SetNextAxesToFit();
         if (ImPlot::BeginPlot("Class Accuracy")) {
             const auto classAcc = DataManager::GetClassAccuracy();
-            ImPlot::PlotBars("", &classAcc[0], classAcc.size());
+            for (uint i = 0; i < classAcc.size(); i++)
+                ImPlot::PlotLine(std::to_string(i).c_str(), &classAcc[i][0], classAcc[i].size());
+            auto avgAcc = DataManager::GetAccuracy();
+            ImPlot::PlotLine("Average", &avgAcc[0], avgAcc.size());
             ImPlot::EndPlot();
         }
 
