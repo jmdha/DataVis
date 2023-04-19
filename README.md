@@ -7,6 +7,7 @@ Do note: This repo is simply for future reference for myself. You're welcome to 
 ![image](https://user-images.githubusercontent.com/53914190/233040816-eebfa457-13f5-455f-9954-58d8a4caa5c7.png)
 
 ## Depencies
+- ![cmkr](https://github.com/build-cpp/cmkr)
 - ![imgui](https://github.com/ocornut/imgui)
 - ![implot](https://github.com/epezent/implot)
 - ![ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog)
